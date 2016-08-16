@@ -90,6 +90,9 @@ ENV/
 
 #temp
 bin/
+fary/
+rachel_visual_genes/
+queryWork/
 *fa
 *fastq
 *nsq
