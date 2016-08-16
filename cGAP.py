@@ -140,6 +140,7 @@ class CGAP():
         formatCommands = []
 
         for fileName in allReads:
+            print ('Formatting srdb for ', fileName)
             formatCommands.append("perl bin/formatSRDB.pl {fileName} ".format(**locals()))
 
         return formatCommands
@@ -348,9 +349,9 @@ class CGAP():
         vcfFileOut = "{self.workPath}/{s}/bamFiles.{s}/{n}.vcf"
         depthFileOut = "{self.workPath}/{s}/bamFiles.{s}/{n}.tdv"
 
-        cmd =  'bwa mem {refFile} {all_reads} |
+        cmd =  'bwa mem {refFile} {all_reads} | '
         cmd += 'samtools view -Su - | '
-        cmd += 'novosort -rd -t . - > {bamFileOut};
+        cmd += 'novosort -rd -t . - > {bamFileOut}; '
         self.addCmd(n, s, cmd)
         # add command
 
