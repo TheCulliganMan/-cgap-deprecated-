@@ -140,7 +140,6 @@ class CGAP():
         formatCommands = []
 
         for fileName in allReads:
-            print ('Formatting srdb for ', fileName)
             formatCommands.append("perl bin/formatSRDB.pl {fileName} ".format(**locals()))
 
         return formatCommands
@@ -344,31 +343,37 @@ class CGAP():
 
         refFile = "{self.workPath}/queryWork/{n}.fa".format(**locals())
         all_reads = "{self.workPath}/fr_readHits/{n}.{s}.**.fastq".format(**locals())
-        masked = "{self.workPath}/{s}/cnsSeqs.{s}/{n}.masked.fasta".format(**locals())
-        bamFileOut = "{self.workPath}/{s}/bamFiles.{s}/{n}.final.bam".format(**locals())  # final bam file
-        vcfFileOut = "{self.workPath}/{s}/bamFiles.{s}/{n}.vcf"
-        depthFileOut = "{self.workPath}/{s}/bamFiles.{s}/{n}.tdv"
+        cns_file = "{self.workPath}/{s}/cnsSeqs.{s}/{n}.masked.fasta".format(**locals())
+        bamFileOut = "{self.workPath}/{s}/bamFiles.{s}/{n}.final.bam".format(**locals())
+        bamFileWorking = "{self.workPath}/{s}/bamFiles.{s}/{n}.working.bam".format(**locals())
+        vcfFileOut = "{self.workPath}/{s}/bamFiles.{s}/{n}.vcf".format(**locals())
+        depthFileOut = "{self.workPath}/{s}/bamFiles.{s}/{n}.tdv".format(**locals())
 
-        cmd =  'bwa mem {refFile} {all_reads} | '
+        cmd =  'bwa mem {refFile} {all_reads} | '.format(**locals())
         cmd += 'samtools view -Su - | '
-        cmd += 'novosort -rd -t . - > {bamFileOut}; '
-        self.addCmd(n, s, cmd)
-        # add command
+        cmd += 'novosort -m 1g -o {bamFileWorking} -t . -; '.format(**locals())
+        #self.addCmd(n, s, cmd)
 
-        cmd =  'cat {bamFileOut} | '
-        cmd += 'samtools mpileup -A -ug -f {refFile} - | '
+        cmd = "java -jar bin/MarkDuplicates.jar INPUT={bamFileWorking} OUTPUT={bamFileOut} REMOVE_DUPLICATES=true METRICS_FILE=dup.txt ASSUME_SORTED=true; ".format(**locals())
+        #self.addCmd(n, s, cmd)
+
+        cmd = "samtools index {bamFileOut} && rm {bamFileWorking} ".format(**locals())
+        #self.addCmd(n, s, cmd)
+
+        cmd =  'cat {bamFileOut} | '.format(**locals())
+        cmd += 'samtools mpileup -A -ug -f {refFile} -s - | '.format(**locals())
         cmd += 'bcftools call -c | '
-        cmd += 'bgzip > {vcfFileOut};'
-        self.addCmd(n, s, cmd)
+        cmd += 'bgunzip > {vcfFileOut};'.format(**locals())
+        #self.addCmd(n, s, cmd)
 
-        cmd = 'tabix {vcfFileOut};'
-        self.addCmd(n, s, cmd)
+        cmd = 'tabix -f {vcfFileOut};'.format(**locals())
+        #self.addCmd(n, s, cmd)
 
-        cmd =  "bcftools filter -i'(%QUAL<20) || (%QUAL==999) || (DP <= 3)' {vcfFileOut} | "
-        cmd += "bcftools query -f'%CHROM\t%POS\n > {depthFile}; "
-        self.addCmd(n, s, cmd)
+        cmd =  "bcftools filter -i'(%QUAL<20) || (%QUAL==999) || (DP <= 3)' {vcfFileOut} | ".format(**locals())
+        cmd += "bcftools query -f'%CHROM\t%POS\n' > {depthFileOut}; ".format(**locals())
+        #self.addCmd(n, s, cmd)
 
-        cmd =  "bcftools consensus {vcfFileOut} -f {refFile} -m {depthFile} > {cns_file}; "
+        cmd =  "bcftools consensus {vcfFileOut} -f {refFile} -m {depthFileOut} > {cns_file}; ".format(**locals())
         self.addCmd(n, s, cmd)
 
         return True

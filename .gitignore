@@ -89,15 +89,24 @@ ENV/
 .ropeproject
 
 #temp
+dup.txt
 bin/
 fary/
 rachel_visual_genes/
 queryWork/
 *fa
+*fasta
+*vcf
+*tbi
+*fq
 *fastq
 *nsq
 *nin
 *nhr
 *hits
 *nal
+*bam
+*bai
+*depth
+*tdv
 *blast
