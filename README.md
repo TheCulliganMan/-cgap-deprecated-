@@ -10,3 +10,8 @@ Extracts genes using a consensus sequence.
 6. Uses bcftools, samtools, and novocraft to create consensus sequences.
 ##Note
 This is still very much a work in progress.  The cgap file needs to be split into multiple functions instead of the monolithic class in which it currently resides.
+##Docker
+All the programs for this pipeline are compiled in a docker image on the docker hub.
+```bash
+docker run -itv <directory>:/work theculliganman/cgap /bin/bash
+```
